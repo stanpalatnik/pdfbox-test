@@ -43,6 +43,14 @@ public class Main {
                 System.out.println(result);
             }
         }
+
+        Float upperRightY = page.getMediaBox().getUpperRightY();
+        if(upperRightY != 0) {
+            contentStream.fillRect(164.5F, page.getMediaBox().getUpperRightY() - 241F - 23F, 365F, 23F);   //invert Y-coordinate and offset for writing UP
+        }
+        else {
+            contentStream.fillRect(164.5F, 241F, 365F, 23F);
+        }
         contentStream.close();
         pdfDoc.save(args[0] + ".out.pdf");
         pdfDoc.close();
