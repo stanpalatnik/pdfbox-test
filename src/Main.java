@@ -5,6 +5,7 @@ import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.edit.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
 import org.apache.pdfbox.pdmodel.interactive.form.PDTextbox;
@@ -34,26 +35,42 @@ public class Main {
         for( PDField field : pdFields) {
             if(field instanceof PDTextbox) {
                 field.setReadonly(true);
-                field.setValue("");
 
                 COSDictionary fieldDict = field.getDictionary();
                 COSArray fieldAreaArray = (COSArray) fieldDict.getDictionaryObject(COSName.RECT);
                 PDRectangle result = new PDRectangle(fieldAreaArray);
                 printRect(contentStream, result);
+                printString(contentStream, result);
                 System.out.println(result);
             }
         }
 
+        /*
         Float upperRightY = page.getMediaBox().getUpperRightY();
         if(upperRightY != 0) {
             contentStream.fillRect(164.5F, page.getMediaBox().getUpperRightY() - 241F - 23F, 365F, 23F);   //invert Y-coordinate and offset for writing UP
         }
         else {
             contentStream.fillRect(164.5F, 241F, 365F, 23F);
-        }
+        } */
+
         contentStream.close();
         pdfDoc.save(args[0] + ".out.pdf");
         pdfDoc.close();
+    }
+
+    public static void printString(final PDPageContentStream contentStream, final PDRectangle rect) throws IOException {
+        int fontSize = 16; // Or whatever font size you want.
+        float titleWidth = PDType1Font.HELVETICA_BOLD.getStringWidth("Hello World") / 1000 * fontSize;
+        float titleHeight = PDType1Font.HELVETICA_BOLD.getFontDescriptor().getFontBoundingBox().getHeight() / 1000 * fontSize;
+
+        //float rectHeight = rect.getLowerLe
+        contentStream.beginText();
+        contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+        contentStream.moveTextPositionByAmount((page.getMediaBox().getWidth() - titleWidth) / 2, page.getMediaBox().getHeight - marginTop - titleheight);
+        contentStream.moveTextPositionByAmount( rect.getLowerLeftX() +1 , rect.getLowerLeftY() +1 );
+        contentStream.drawString( "Hello World" );
+        contentStream.endText();
     }
 
     public static void printRect(final PDPageContentStream contentStream, final PDRectangle rect) throws IOException {
