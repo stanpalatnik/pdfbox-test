@@ -6,10 +6,7 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.edit.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
-import org.apache.pdfbox.pdmodel.interactive.form.PDField;
-import org.apache.pdfbox.pdmodel.interactive.form.PDTextbox;
-import org.apache.pdfbox.pdmodel.interactive.form.PDXFA;
+import org.apache.pdfbox.pdmodel.interactive.form.*;
 import org.apache.pdfbox.util.TextPosition;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -41,8 +38,27 @@ public class Main {
                 COSArray fieldAreaArray = (COSArray) fieldDict.getDictionaryObject(COSName.RECT);
                 PDRectangle result = new PDRectangle(fieldAreaArray);
                 printRect(contentStream, result);
-                printString(contentStream, result);
+                printString(page, contentStream, result);
                 System.out.println(result);
+            }
+            else if(field instanceof PDCheckbox) {
+                PDCheckbox checkbox = (PDCheckbox)field;
+                checkbox.setReadonly(true);
+                System.out.println("checkbox!");
+                checkbox.unCheck();
+                COSDictionary fieldDict = checkbox.getDictionary();
+                COSArray fieldAreaArray = (COSArray) fieldDict.getDictionaryObject(COSName.RECT);
+                PDRectangle result = new PDRectangle(fieldAreaArray);
+                printCheckbox(page, contentStream, result);
+            }
+            else if(field instanceof PDRadioCollection) {
+                System.out.println("radio..");
+                for(Object radio : field.getKids()) {
+                    if(radio instanceof PDCheckbox) {
+                        PDCheckbox radioCheckbox = (PDCheckbox)radio;
+                        radioCheckbox.unCheck();
+                    }
+                }
             }
         }
 
@@ -60,7 +76,18 @@ public class Main {
         pdfDoc.close();
     }
 
-    public static void printString(final PDPageContentStream contentStream, final PDRectangle rect) throws IOException {
+    public static void printCheckbox(PDPage page, PDPageContentStream contentStream, final PDRectangle rect) throws IOException {
+        Float upperRightY = page.getMediaBox().getUpperRightY();
+        if(upperRightY == 0) {
+            contentStream.fillRect(rect.getLowerLeftX(), upperRightY - rect.getLowerLeftY() - rect.getHeight(),
+                    rect.getWidth(), rect.getHeight());
+        }
+        else {
+            contentStream.fillRect(rect.getLowerLeftX(), rect.getLowerLeftY(), rect.getWidth(), rect.getHeight());
+        }
+    }
+
+    public static void printString(PDPage page, final PDPageContentStream contentStream, final PDRectangle rect) throws IOException {
         int fontSize = 16; // Or whatever font size you want.
         float titleWidth = PDType1Font.HELVETICA_BOLD.getStringWidth("Hello World") / 1000 * fontSize;
         float titleHeight = PDType1Font.HELVETICA_BOLD.getFontDescriptor().getFontBoundingBox().getHeight() / 1000 * fontSize;
@@ -68,7 +95,16 @@ public class Main {
         //float rectHeight = rect.getLowerLe
         contentStream.beginText();
         contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
-        contentStream.moveTextPositionByAmount( rect.getLowerLeftX() +1 , rect.getLowerLeftY() +1 );
+
+        Float upperRightY = page.getMediaBox().getUpperRightY();
+        if(upperRightY == 0) {
+            System.out.println("Inverted");
+            contentStream.moveTextPositionByAmount(rect.getLowerLeftX() + 1, upperRightY - rect.getLowerLeftY() + 1 - rect.getHeight());
+        }
+        else {
+            contentStream.moveTextPositionByAmount(rect.getLowerLeftX() + 1, rect.getLowerLeftY() + 1);
+        }
+
         contentStream.moveTextPositionByAmount((rect.getWidth() - titleWidth) / 2, rect.getHeight() - titleHeight);
         contentStream.drawString( "Hello World" );
         contentStream.endText();
