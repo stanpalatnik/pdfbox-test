@@ -35,6 +35,7 @@ public class Main {
         for( PDField field : pdFields) {
             if(field instanceof PDTextbox) {
                 field.setReadonly(true);
+                field.setValue("");
 
                 COSDictionary fieldDict = field.getDictionary();
                 COSArray fieldAreaArray = (COSArray) fieldDict.getDictionaryObject(COSName.RECT);
@@ -67,8 +68,8 @@ public class Main {
         //float rectHeight = rect.getLowerLe
         contentStream.beginText();
         contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
-        contentStream.moveTextPositionByAmount((page.getMediaBox().getWidth() - titleWidth) / 2, page.getMediaBox().getHeight - marginTop - titleheight);
         contentStream.moveTextPositionByAmount( rect.getLowerLeftX() +1 , rect.getLowerLeftY() +1 );
+        contentStream.moveTextPositionByAmount((rect.getWidth() - titleWidth) / 2, rect.getHeight() - titleHeight);
         contentStream.drawString( "Hello World" );
         contentStream.endText();
     }
